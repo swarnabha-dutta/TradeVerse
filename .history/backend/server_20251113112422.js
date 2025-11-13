@@ -1,0 +1,11 @@
+require("dotenv").config();
+
+const mongoose = require("mongoose");
+const express = require("express");
+const app = express();
+
+const PORT= process.env.PORT ||2
+
+app.listen(3002, (req, res) => {
+    console.log(`app is listening on port 3002`);
+})
