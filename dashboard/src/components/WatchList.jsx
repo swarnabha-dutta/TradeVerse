@@ -1,177 +1,174 @@
-    import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
+import axios from "axios";
+import GeneralContext from "./GeneralContext";
+import { Tooltip, Grow } from "@mui/material";
+import {
+  BarChartOutlined,
+  KeyboardArrowDown,
+  KeyboardArrowUp,
+  MoreHoriz,
+} from "@mui/icons-material";
 
-    import axios from "axios";
+import { watchlist } from "../data/Data";
+import { DoughnutChart } from "./DoughnoutChart";
 
-    import GeneralContext from "./GeneralContext";
+const WatchList = () => {
+  const [livePrices, setLivePrices] = useState({});
 
-    import { Tooltip, Grow } from "@mui/material";
+  // 🔥 Fetch Live Prices from Backend (Yahoo API)
+  useEffect(() => {
+    const fetchLivePrices = async () => {
+      try {
+        const results = await Promise.all(
+          watchlist.map((item) =>
+            axios.get(`http://localhost:5000/api/live/quote/${item.symbol}`)
+          )
+        );
 
-    import {
-    BarChartOutlined,
-    KeyboardArrowDown,
-    KeyboardArrowUp,
-    MoreHoriz,
-    } from "@mui/icons-material";
+        const temp = {};
+        results.forEach((res, index) => {
+          temp[watchlist[index].symbol] = res.data.price;
+        });
 
-    import { watchlist } from "../data/Data";
-    import { DoughnutChart } from "./DoughnoutChart";
+        setLivePrices(temp);
+      } catch (error) {
+        console.log("Live Price Fetch Error: ", error);
+      }
+    };
 
-    const labels = watchlist.map((subArray) => subArray["name"]);
+    fetchLivePrices();
 
-    const WatchList = () => {
-    const data = {
-        labels,
-        datasets: [
-        {
-            label: "Price",
-            data: watchlist.map((stock) => stock.price),
-            backgroundColor: [
-            "rgba(255, 99, 132, 0.5)",
-            "rgba(54, 162, 235, 0.5)",
-            "rgba(255, 206, 86, 0.5)",
-            "rgba(75, 192, 192, 0.5)",
-            "rgba(153, 102, 255, 0.5)",
-            "rgba(255, 159, 64, 0.5)",
-            ],
-            borderColor: [
-            "rgba(255, 99, 132, 1)",
-            "rgba(54, 162, 235, 1)",
-            "rgba(255, 206, 86, 1)",
-            "rgba(75, 192, 192, 1)",
-            "rgba(153, 102, 255, 1)",
-            "rgba(255, 159, 64, 1)",
-            ],
-            borderWidth: 1,
-        },
+    const interval = setInterval(fetchLivePrices, 10000); // auto refresh 10 sec
+    return () => clearInterval(interval);
+  }, []);
+
+  // Donut chart data (can be dynamic later)
+  const labels = watchlist.map((subArray) => subArray["name"]);
+  const data = {
+    labels,
+    datasets: [
+      {
+        label: "Price",
+        data: watchlist.map(
+          (stock) => livePrices[stock.symbol] || stock.price
+        ),
+        backgroundColor: [
+          "rgba(255, 99, 132, 0.5)",
+          "rgba(54, 162, 235, 0.5)",
+          "rgba(255, 206, 86, 0.5)",
+          "rgba(75, 192, 192, 0.5)",
         ],
-    };
+        borderColor: [
+          "rgba(255, 99, 132, 1)",
+          "rgba(54, 162, 235, 1)",
+          "rgba(255, 206, 86, 1)",
+          "rgba(75, 192, 192, 1)",
+        ],
+        borderWidth: 1,
+      },
+    ],
+  };
 
-    // export const data = {
-    //   labels: ["Red", "Blue", "Yellow", "Green", "Purple", "Orange"],
-    // datasets: [
-    //   {
-    //     label: "# of Votes",
-    //     data: [12, 19, 3, 5, 2, 3],
-    //     backgroundColor: [
-    //       "rgba(255, 99, 132, 0.2)",
-    //       "rgba(54, 162, 235, 0.2)",
-    //       "rgba(255, 206, 86, 0.2)",
-    //       "rgba(75, 192, 192, 0.2)",
-    //       "rgba(153, 102, 255, 0.2)",
-    //       "rgba(255, 159, 64, 0.2)",
-    //     ],
-    //     borderColor: [
-    //       "rgba(255, 99, 132, 1)",
-    //       "rgba(54, 162, 235, 1)",
-    //       "rgba(255, 206, 86, 1)",
-    //       "rgba(75, 192, 192, 1)",
-    //       "rgba(153, 102, 255, 1)",
-    //       "rgba(255, 159, 64, 1)",
-    //     ],
-    //     borderWidth: 1,
-    //   },
-    // ],
-    // };
+  return (
+    <div className="watchlist-container">
+      <div className="search-container">
+        <input
+          type="text"
+          placeholder="Search eg: INFY, RELIANCE, TCS"
+          className="search"
+        />
+        <span className="counts">{watchlist.length} / 50</span>
+      </div>
 
-    return (
-        <div className="watchlist-container">
-        <div className="search-container">
-            <input
-            type="text"
-            name="search"
-            id="search"
-            placeholder="Search eg:infy, bse, nifty fut weekly, gold mcx"
-            className="search"
-            />
-            <span className="counts"> {watchlist.length} / 50</span>
+      <ul className="list">
+        {watchlist.map((stock, index) => (
+          <WatchListItem
+            stock={stock}
+            key={index}
+            livePrice={livePrices[stock.symbol]}
+          />
+        ))}
+      </ul>
+
+      <DoughnutChart data={data} />
+    </div>
+  );
+};
+
+export default WatchList;
+
+// -------------------------------------------------------------------------------------
+
+const WatchListItem = ({ stock, livePrice }) => {
+  const [showWatchlistActions, setShowWatchlistActions] = useState(false);
+
+  return (
+    <li
+      onMouseEnter={() => setShowWatchlistActions(true)}
+      onMouseLeave={() => setShowWatchlistActions(false)}
+    >
+      <div className="item">
+        <p className={stock.isDown ? "down" : "up"}>{stock.name}</p>
+
+        <div className="itemInfo">
+          <span className="percent">{stock.percent}</span>
+          {stock.isDown ? (
+            <KeyboardArrowDown className="down" />
+          ) : (
+            <KeyboardArrowUp className="up" />
+          )}
+
+          {/* 🔥 LIVE PRICE SHOW HERE */}
+          <span className="price">
+            {livePrice ? livePrice.toFixed(2) : "Loading..."}
+          </span>
         </div>
+      </div>
 
-        <ul className="list">
-            {watchlist.map((stock, index) => {
-            return <WatchListItem stock={stock} key={index} />;
-            })}
-        </ul>
+      {showWatchlistActions && <WatchListActions uid={stock.name} />}
+    </li>
+  );
+};
 
-        <DoughnutChart data={data} />
-        </div>
-    );
-    };
+// -------------------------------------------------------------------------------------
 
-    export default WatchList;
+const WatchListActions = ({ uid }) => {
+  const generalContext = useContext(GeneralContext);
 
-    const WatchListItem = ({ stock }) => {
-    const [showWatchlistActions, setShowWatchlistActions] = useState(false);
+  return (
+    <span className="actions">
+      <span>
+        <Tooltip
+          title="Buy (B)"
+          placement="top"
+          arrow
+          TransitionComponent={Grow}
+          onClick={() => generalContext.openBuyWindow(uid)}
+        >
+          <button className="buy">Buy</button>
+        </Tooltip>
 
-    const handleMouseEnter = (e) => {
-        setShowWatchlistActions(true);
-    };
+        <Tooltip title="Sell (S)" placement="top" arrow TransitionComponent={Grow}>
+          <button className="sell">Sell</button>
+        </Tooltip>
 
-    const handleMouseLeave = (e) => {
-        setShowWatchlistActions(false);
-    };
+        <Tooltip
+          title="Analytics (A)"
+          placement="top"
+          arrow
+          TransitionComponent={Grow}
+        >
+          <button className="action">
+            <BarChartOutlined className="icon" />
+          </button>
+        </Tooltip>
 
-    return (
-        <li onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
-        <div className="item">
-            <p className={stock.isDown ? "down" : "up"}>{stock.name}</p>
-            <div className="itemInfo">
-            <span className="percent">{stock.percent}</span>
-            {stock.isDown ? (
-                <KeyboardArrowDown className="down" />
-            ) : (
-                <KeyboardArrowUp className="down" />
-            )}
-            <span className="price">{stock.price}</span>
-            </div>
-        </div>
-        {showWatchlistActions && <WatchListActions uid={stock.name} />}
-        </li>
-    );
-    };
-
-    const WatchListActions = ({ uid }) => {
-    const generalContext = useContext(GeneralContext);
-
-    const handleBuyClick = () => {
-        generalContext.openBuyWindow(uid);
-    };
-
-    return (
-        <span className="actions">
-        <span>
-            <Tooltip
-            title="Buy (B)"
-            placement="top"
-            arrow
-            TransitionComponent={Grow}
-            onClick={handleBuyClick}
-            >
-            <button className="buy">Buy</button>
-            </Tooltip>
-            <Tooltip
-            title="Sell (S)"
-            placement="top"
-            arrow
-            TransitionComponent={Grow}
-            >
-            <button className="sell">Sell</button>
-            </Tooltip>
-            <Tooltip
-            title="Analytics (A)"
-            placement="top"
-            arrow
-            TransitionComponent={Grow}
-            >
-            <button className="action">
-                <BarChartOutlined className="icon" />
-            </button>
-            </Tooltip>
-            <Tooltip title="More" placement="top" arrow TransitionComponent={Grow}>
-            <button className="action">
-                <MoreHoriz className="icon" />
-            </button>
-            </Tooltip>
-        </span>
-        </span>
-    );
-    };
+        <Tooltip title="More" placement="top" arrow TransitionComponent={Grow}>
+          <button className="action">
+            <MoreHoriz className="icon" />
+          </button>
+        </Tooltip>
+      </span>
+    </span>
+  );
+};

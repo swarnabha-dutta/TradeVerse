@@ -10,7 +10,7 @@ import liveRoutes from "./routes/live.routes.js";
 import seedHoldings from "./utils/seedholding.utils.js";
 import seedPositions from "./utils/seedposition.utils.js";
 import bodyParser from 'body-parser';
-
+import fundsRoutes from "./routes/funds.routes.js";
 
 const app = express();
 
@@ -27,7 +27,7 @@ app.use("/api/holdings", holdingRoutes);
 app.use("/api/positions", positionRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/live", liveRoutes);
-
+app.use("/api/funds", fundsRoutes);
 
 
 

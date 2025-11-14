@@ -1,7 +1,23 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import axios from "axios";
 
 const Funds = () => {
+    const [funds, setFunds] = useState(null);
+
+    useEffect(() => {
+        axios
+            .get("http://localhost:5000/api/funds")
+            .then((res) => setFunds(res.data))
+            .catch((err) =>
+                console.log("Funds Load Error:", err)
+            );
+    }, []);
+
+    if (!funds) {
+        return <p>Loading funds...</p>;
+    }
+
     return (
         <>
         <div className="funds">
@@ -17,60 +33,76 @@ const Funds = () => {
             </span>
 
             <div className="table">
+
                 <div className="data">
                 <p>Available margin</p>
-                <p className="imp colored">4,043.10</p>
+                <p className="imp colored">{funds.availableMargin}</p>
                 </div>
+
                 <div className="data">
                 <p>Used margin</p>
-                <p className="imp">3,757.30</p>
+                <p className="imp">{funds.usedMargin}</p>
                 </div>
+
                 <div className="data">
                 <p>Available cash</p>
-                <p className="imp">4,043.10</p>
+                <p className="imp">{funds.availableCash}</p>
                 </div>
+
                 <hr />
+
                 <div className="data">
                 <p>Opening Balance</p>
-                <p>4,043.10</p>
+                <p>{funds.openingBalanceDay1}</p>
                 </div>
+
                 <div className="data">
                 <p>Opening Balance</p>
-                <p>3736.40</p>
+                <p>{funds.openingBalanceDay2}</p>
                 </div>
+
                 <div className="data">
                 <p>Payin</p>
-                <p>4064.00</p>
+                <p>{funds.payin}</p>
                 </div>
+
                 <div className="data">
                 <p>SPAN</p>
-                <p>0.00</p>
+                <p>{funds.span}</p>
                 </div>
+
                 <div className="data">
                 <p>Delivery margin</p>
-                <p>0.00</p>
+                <p>{funds.deliveryMargin}</p>
                 </div>
+
                 <div className="data">
                 <p>Exposure</p>
-                <p>0.00</p>
+                <p>{funds.exposure}</p>
                 </div>
+
                 <div className="data">
                 <p>Options premium</p>
-                <p>0.00</p>
+                <p>{funds.optionsPremium}</p>
                 </div>
+
                 <hr />
+
                 <div className="data">
                 <p>Collateral (Liquid funds)</p>
-                <p>0.00</p>
+                <p>{funds.collateralLiquid}</p>
                 </div>
+
                 <div className="data">
                 <p>Collateral (Equity)</p>
-                <p>0.00</p>
+                <p>{funds.collateralEquity}</p>
                 </div>
+
                 <div className="data">
                 <p>Total Collateral</p>
-                <p>0.00</p>
+                <p>{funds.collateralLiquid + funds.collateralEquity}</p>
                 </div>
+
             </div>
             </div>
 
