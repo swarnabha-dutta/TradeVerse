@@ -1,12 +1,23 @@
 import React, { useState, useEffect } from "react";
+
+import axios from "axios";
+
 import { VerticalGraph } from "./VerticalGraph.jsx";
-import { holdings } from "../data/Data.jsx";
+
+
 
     const Holdings = () => {
     const [allHoldings, setAllHoldings] = useState([]);
 
     useEffect(() => {
-        setAllHoldings(holdings); // ✅ local dummy data থেকে load করবে
+
+        axios.get("http://localhost:5000/api/holdings")
+        .then((res) => {
+            console.log(res.data);
+            setAllHoldings(res.data); 
+        })
+
+        
     }, []);
 
     const labels = allHoldings.map((item) => item.name);

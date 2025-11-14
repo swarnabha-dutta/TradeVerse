@@ -1,1 +1,0 @@
-import HoldingModel from "../"
