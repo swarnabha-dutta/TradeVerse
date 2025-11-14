@@ -25,13 +25,25 @@ const BuyActionWindow = ({ uid }) => {
             console.log("Order failed:", error);
         }
     };
-
+    const handleSellClick = async ()=>{
+        try {
+            await axios.post("http://localhost:5000/api/orders",{
+                name:uid,
+                qty:Number(stockQuantity),
+                price:Number(stockPrice),
+                mode:"SELL",
+            });
+            general.closeBuyWindow();
+        } catch (error) {
+            console.log("Sell order failed:", error);
+        }
+    }
     const handleCancelClick = () => {
         general.closeBuyWindow(); 
     };
 
-    return (
-        <div className="container" id="buy-window" draggable="true">
+      return (
+        <div className="container" id="buy-window">
             <div className="regular-order">
                 <div className="inputs">
                     <fieldset>
@@ -62,7 +74,12 @@ const BuyActionWindow = ({ uid }) => {
                     <Link className="btn btn-blue" onClick={handleBuyClick}>
                         Buy
                     </Link>
-                    <Link className="btn btn-grey" onClick={handleCancelClick}>
+
+                    <Link className="btn btn-red" onClick={handleSellClick}>
+                        Sell
+                    </Link>
+
+                    <Link className="btn btn-grey" onClick={general.closeBuyWindow}>
                         Cancel
                     </Link>
                 </div>
